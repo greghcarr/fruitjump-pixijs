@@ -10,7 +10,7 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   const gameContainer = new Container();
   app.stage.addChild(gameContainer);
 
-  let gameSpeed = 4.0;
+  let gameSpeed = 5.0;
 
   /*
   Create background texture layers:
@@ -33,6 +33,10 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     '/assets/images/fruits/banana.png',
     '/assets/images/fruits/cat_food.png',
     '/assets/images/fruits/energy_drink_sf.png',
+    '/assets/images/fruits/energy_drink.png',
+    '/assets/images/fruits/granny_smith.png',
+    '/assets/images/fruits/red_delicious.png',
+    '/assets/images/fruits/watermelon.png',
   ]);
   // Function to get random obstacle texture
   function getRandomObstacleTexture() {
@@ -40,7 +44,9 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     return textures[Math.floor(Math.random() * textures.length)];
   }
 
-
+  /*
+  Create background sprites and add to container:
+  */
   // Background (bottom layer)
   const bgSprite1 = new Sprite(bgTexture);
   bgSprite1.anchor.set(0.5);
@@ -78,8 +84,8 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   const GROUND_Y = bgTexture.height / 2 - 40; // The y position where player stands
 
   /*
-Create player sprite:
-*/
+  Create player sprite:
+  */
   const playerSprite = new AnimatedSprite(Object.values(playerWalkFrames));
   playerSprite.animationSpeed = (10 / 60) * (gameSpeed / 4);
   playerSprite.play();
@@ -92,7 +98,9 @@ Create player sprite:
   );
   gameContainer.addChild(playerSprite);
 
-  // Create obstacle with random texture
+  /* 
+  Create obstacle sprite with random texture:
+  */
   const obstacleSprite = new Sprite(getRandomObstacleTexture());
   obstacleSprite.anchor.set(0.5, 1); // 0.5 = center horizontally, 1 = bottom
   obstacleSprite.scale.set(1);
@@ -154,22 +162,21 @@ Create player sprite:
     const margin = 20;
     const availableWidth = app.screen.width - (margin * 2);
     const availableHeight = app.screen.height - (margin * 2);
-
     // Calculate scale for both dimensions
     const scaleX = availableWidth / bgTexture.width;
     const scaleY = availableHeight / bgTexture.height;
-
     // Use the SMALLER scale to ensure entire image fits
     const scale = Math.min(scaleX, scaleY);
     gameContainer.scale.set(scale);
-
     // Center on screen
     gameContainer.position.set(app.screen.width / 2, app.screen.height / 2);
   }
   resizeGame();
   window.addEventListener('resize', resizeGame);
 
-  // Game loop
+  /*
+  Game loop:
+  */
   app.ticker.add((time) => {
     /*
     Player jump physics and handling:
@@ -204,8 +211,7 @@ Create player sprite:
     // Move background
     bgSprite1.x -= gameSpeed * time.deltaTime;
     bgSprite2.x -= gameSpeed * time.deltaTime;
-
-    // Wrap background
+    // Wrap background when it goes off screen
     if (bgSprite1.x < -bgTexture.width) {
       bgSprite1.x = bgSprite2.x + bgTexture.width;
     }
@@ -216,7 +222,6 @@ Create player sprite:
     // Move clouds
     cloudsSprite1.x -= gameSpeed / 5 * time.deltaTime;
     cloudsSprite2.x -= gameSpeed / 5 * time.deltaTime;
-
     // Wrap clouds when they go off screen
     if (cloudsSprite1.x < -cloudsTexture.width) {
       cloudsSprite1.x = cloudsSprite2.x + cloudsTexture.width;
@@ -228,8 +233,7 @@ Create player sprite:
     // Move plants
     plantsSprite1.x -= gameSpeed * time.deltaTime;
     plantsSprite2.x -= gameSpeed * time.deltaTime;
-
-    // Wrap plants
+    // Wrap plants when they go off screen
     if (plantsSprite1.x < -plantsTexture.width) {
       plantsSprite1.x = plantsSprite2.x + plantsTexture.width;
     }
