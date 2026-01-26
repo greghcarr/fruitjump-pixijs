@@ -50,6 +50,9 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   plantsSprite2.position.set(plantsTexture.width, 0);
   gameContainer.addChild(plantsSprite2);
 
+  const JUMP_STRENGTH = -8;
+  const GROUND_Y = bgTexture.height / 2 - 65; // The y position where player stands
+
   /*
   Create player sprite:
   */
@@ -76,10 +79,29 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   playerSprite.scale.y = 0.75; // Make it bigger (adjust as needed)
   playerSprite.position.set(
     -bgTexture.width / 2 + 60,  // 100px from left edge
-    bgTexture.height / 2 - 65     // 50px up from bottom
+    GROUND_Y     // 50px up from bottom
   );
 
   gameContainer.addChild(playerSprite);
+
+  // Player physics
+  let playerVelocityY = 0;
+  let isJumping = false;
+  const GRAVITY = 0.5;
+
+  // Set initial position
+  playerSprite.position.set(
+    -bgTexture.width / 2 + 60,
+    GROUND_Y
+  );
+
+  // Keyboard input
+  window.addEventListener('keydown', (e) => {
+    if (e.code === 'Space' && !isJumping) {
+      isJumping = true;
+      playerVelocityY = JUMP_STRENGTH;
+    }
+  });
 
   // Create a mask rectangle
   const mask = new Graphics();
@@ -116,8 +138,21 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   resizeGame();
   window.addEventListener('resize', resizeGame);
 
-  // Parallax scrolling with wrapping
+  // Game loop
   app.ticker.add((time) => {
+    // Jump physics
+    if (isJumping) {
+      playerVelocityY += GRAVITY * time.deltaTime;
+      playerSprite.y += playerVelocityY * time.deltaTime;
+
+      // Check if landed back on ground
+      if (playerSprite.y >= GROUND_Y) {
+        playerSprite.y = GROUND_Y;
+        playerVelocityY = 0;
+        isJumping = false;
+      }
+    }
+
     // Move background
     bgSprite1.x -= gameSpeed * time.deltaTime;
     bgSprite2.x -= gameSpeed * time.deltaTime;
