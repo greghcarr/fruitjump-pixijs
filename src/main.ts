@@ -1,5 +1,5 @@
 // description: This example demonstrates how to use a Container to group and manipulate multiple sprites
-import { Application, Assets, Container, Sprite, Graphics } from 'pixi.js';
+import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from 'pixi.js';
 
 (async () => {
   // Create a new application
@@ -10,7 +10,7 @@ import { Application, Assets, Container, Sprite, Graphics } from 'pixi.js';
   const gameContainer = new Container();
   app.stage.addChild(gameContainer);
 
-  let gameSpeed = 1.0;
+  let gameSpeed = 2.0;
 
   // Load the textures
   const bgTexture = await Assets.load('/assets/images/levels/street/street_background.png');
@@ -50,6 +50,37 @@ import { Application, Assets, Container, Sprite, Graphics } from 'pixi.js';
   plantsSprite2.position.set(plantsTexture.width, 0);
   gameContainer.addChild(plantsSprite2);
 
+  /*
+  Create player sprite:
+  */
+  // Load all 5 frames
+  const frames = await Assets.load([
+    '/assets/images/player/blue_man_walk_0.png',
+    '/assets/images/player/blue_man_walk_1.png',
+    '/assets/images/player/blue_man_walk_2.png',
+    '/assets/images/player/blue_man_walk_3.png',
+    '/assets/images/player/blue_man_walk_4.png'
+  ]);
+
+  // Create animated sprite
+  const playerSprite = new AnimatedSprite(Object.values(frames));
+
+  // Set animation speed
+  // PixiJS runs at 60fps, so 0.1s per frame = 6 frames per second
+  // animationSpeed = (frames per second) / 60
+  playerSprite.animationSpeed = 10 / 60; // 0.1s per frame
+
+  playerSprite.play();
+  playerSprite.anchor.set(0.5);
+  playerSprite.scale.x = -0.75; // Make it bigger (adjust as needed)
+  playerSprite.scale.y = 0.75; // Make it bigger (adjust as needed)
+  playerSprite.position.set(
+    -bgTexture.width / 2 + 60,  // 100px from left edge
+    bgTexture.height / 2 - 65     // 50px up from bottom
+  );
+
+  gameContainer.addChild(playerSprite);
+
   // Create a mask rectangle
   const mask = new Graphics();
   mask.rect(
@@ -66,7 +97,7 @@ import { Application, Assets, Container, Sprite, Graphics } from 'pixi.js';
   // Function to resize and position the background
   function resizeGame() {
     // Add margin (e.g., 20 pixels on each side)
-    const margin = 40;
+    const margin = 20;
     const availableWidth = app.screen.width - (margin * 2);
     const availableHeight = app.screen.height - (margin * 2);
 
