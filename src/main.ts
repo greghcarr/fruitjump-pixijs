@@ -10,12 +10,36 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   const gameContainer = new Container();
   app.stage.addChild(gameContainer);
 
-  let gameSpeed = 2.0;
+  let gameSpeed = 4.0;
 
+  /*
+  Create background texture layers:
+  */
   // Load the textures
   const bgTexture = await Assets.load('/assets/images/levels/street/street_background.png');
   const cloudsTexture = await Assets.load('/assets/images/levels/street/street_clouds.png');
   const plantsTexture = await Assets.load('/assets/images/levels/street/street_plants.png');
+  // Load all 5 player frames
+  const playerWalkFrames = await Assets.load([
+    '/assets/images/player/blue_man_walk_0.png',
+    '/assets/images/player/blue_man_walk_1.png',
+    '/assets/images/player/blue_man_walk_2.png',
+    '/assets/images/player/blue_man_walk_3.png',
+    '/assets/images/player/blue_man_walk_4.png'
+  ]);
+  // Load all obstacle textures (fruits etc.)
+  const obstacleTextures = await Assets.load([
+    '/assets/images/fruits/avocado_toast.png',
+    '/assets/images/fruits/banana.png',
+    '/assets/images/fruits/cat_food.png',
+    '/assets/images/fruits/energy_drink_sf.png',
+  ]);
+  // Function to get random obstacle texture
+  function getRandomObstacleTexture() {
+    const textures = Object.values(obstacleTextures);
+    return textures[Math.floor(Math.random() * textures.length)];
+  }
+
 
   // Background (bottom layer)
   const bgSprite1 = new Sprite(bgTexture);
@@ -51,58 +75,36 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   gameContainer.addChild(plantsSprite2);
 
   const JUMP_STRENGTH = -8;
-  const GROUND_Y = bgTexture.height / 2 - 65; // The y position where player stands
+  const GROUND_Y = bgTexture.height / 2 - 40; // The y position where player stands
 
   /*
-  Create player sprite:
-  */
-  // Load all 5 frames
-  const frames = await Assets.load([
-    '/assets/images/player/blue_man_walk_0.png',
-    '/assets/images/player/blue_man_walk_1.png',
-    '/assets/images/player/blue_man_walk_2.png',
-    '/assets/images/player/blue_man_walk_3.png',
-    '/assets/images/player/blue_man_walk_4.png'
-  ]);
-
-  // Create animated sprite
-  const playerSprite = new AnimatedSprite(Object.values(frames));
-
-  // Set animation speed
-  // PixiJS runs at 60fps, so 0.1s per frame = 6 frames per second
-  // animationSpeed = (frames per second) / 60
-  playerSprite.animationSpeed = 10 / 60; // 0.1s per frame
-
+Create player sprite:
+*/
+  const playerSprite = new AnimatedSprite(Object.values(playerWalkFrames));
+  playerSprite.animationSpeed = (10 / 60) * (gameSpeed / 4);
   playerSprite.play();
-  playerSprite.anchor.set(0.5);
-  playerSprite.scale.x = -0.75; // Make it bigger (adjust as needed)
-  playerSprite.scale.y = 0.75; // Make it bigger (adjust as needed)
-  playerSprite.position.set(
-    -bgTexture.width / 2 + 60,  // 100px from left edge
-    GROUND_Y     // 50px up from bottom
-  );
-
-  gameContainer.addChild(playerSprite);
-
-  // Player physics
-  let playerVelocityY = 0;
-  let isJumping = false;
-  const GRAVITY = 0.5;
-
-  // Set initial position
+  playerSprite.anchor.set(0.5, 1); // 0.5 = center horizontally, 1 = bottom
+  playerSprite.scale.x = -1;
+  playerSprite.scale.y = 1;
   playerSprite.position.set(
     -bgTexture.width / 2 + 60,
     GROUND_Y
   );
+  gameContainer.addChild(playerSprite);
 
-  // Keyboard input
-  window.addEventListener('keydown', (e) => {
-    if (e.code === 'Space' && !isJumping) {
-      isJumping = true;
-      playerVelocityY = JUMP_STRENGTH;
-    }
-  });
+  // Create obstacle with random texture
+  const obstacleSprite = new Sprite(getRandomObstacleTexture());
+  obstacleSprite.anchor.set(0.5, 1); // 0.5 = center horizontally, 1 = bottom
+  obstacleSprite.scale.set(1);
+  obstacleSprite.position.set(
+    bgTexture.width / 2 + 100,
+    GROUND_Y
+  );
+  gameContainer.addChild(obstacleSprite);
 
+  /*
+  Create the mask to limit visible area:
+  */
   // Create a mask rectangle
   const mask = new Graphics();
   mask.rect(
@@ -112,10 +114,40 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     bgTexture.height
   );
   mask.fill(0xffffff); // Color doesn't matter for masks
-
   gameContainer.addChild(mask);
   gameContainer.mask = mask; // Apply mask to container
 
+  /*
+  Player jump code:
+  */
+  // Player physics
+  let playerVelocityY = 0;
+  let isJumping = false;
+  const GRAVITY = 0.5;
+  // Jump function
+  function playerJump() {
+    if (!isJumping) {
+      isJumping = true;
+      playerVelocityY = JUMP_STRENGTH;
+    }
+  }
+
+  /*
+  User input handling:
+  */
+  // Keyboard input
+  window.addEventListener('keydown', (e) => {
+    // if space is pressed, make the player jump
+    if (e.code === 'Space') {
+      playerJump()
+    }
+  });
+  // If user clicks/taps the canvas, make the player jump
+  app.canvas.addEventListener('pointerdown', playerJump);
+
+  /*
+  Resizing game window handling:
+  */
   // Function to resize and position the background
   function resizeGame() {
     // Add margin (e.g., 20 pixels on each side)
@@ -134,12 +166,14 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     // Center on screen
     gameContainer.position.set(app.screen.width / 2, app.screen.height / 2);
   }
-
   resizeGame();
   window.addEventListener('resize', resizeGame);
 
   // Game loop
   app.ticker.add((time) => {
+    /*
+    Player jump physics and handling:
+    */
     // Jump physics
     if (isJumping) {
       playerVelocityY += GRAVITY * time.deltaTime;
@@ -153,6 +187,20 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
       }
     }
 
+    /*
+    Obstacle movement and recycling:
+    */
+    // Move obstacle (same speed as background)
+    obstacleSprite.x -= gameSpeed * time.deltaTime;
+    // In the game loop, when obstacle goes off-screen:
+    if (obstacleSprite.x < -bgTexture.width / 2 - 100) {
+      obstacleSprite.texture = getRandomObstacleTexture(); // New random texture!
+      obstacleSprite.x = bgTexture.width / 2 + 100;
+    }
+
+    /*
+    Background layers movement:
+    */
     // Move background
     bgSprite1.x -= gameSpeed * time.deltaTime;
     bgSprite2.x -= gameSpeed * time.deltaTime;
