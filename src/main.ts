@@ -1,5 +1,5 @@
 // description: This example demonstrates how to use a Container to group and manipulate multiple sprites
-import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Rectangle } from 'pixi.js';
+import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Rectangle, Text } from 'pixi.js';
 
 (async () => {
   // Create a new application
@@ -21,6 +21,7 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   const OBSTACLE_MAX_DISTANCE = 400;
 
   let gameSpeed = INITIAL_GAME_SPEED;
+  let score = 0;
   let isGameOver = false;
 
   /*
@@ -181,6 +182,26 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   gameContainer.mask = mask; // Apply mask to container
 
   /*
+  Create score text:
+  */
+  const scoreText = new Text({
+    text: 'Score: 0',
+    style: {
+      fontFamily: 'Arial',
+      fontSize: 20,
+      fill: 0xffffff,        // White text
+      fontWeight: 'bold',
+      stroke: { color: 0x000000, width: 4 }  // Black outline, 4px thick
+    }
+  });
+  scoreText.anchor.set(1, 0); // Anchor top-right
+  scoreText.position.set(
+    bgTexture.width / 2 - 40,  // 20px from right edge
+    -bgTexture.height / 2 + 10  // 20px from top edge
+  );
+  gameContainer.addChild(scoreText);
+
+  /*
   Player jump code:
   */
   // Player physics
@@ -198,6 +219,8 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   function resetGame() {
     isGameOver = false;
     gameSpeed = INITIAL_GAME_SPEED;
+    score = 0;
+    scoreText.text = 'Score: 0'; // Reset text display
     playerSprite.play();
     playerSprite.position.set(-bgTexture.width / 2 + 60, GROUND_Y);
     playerVelocityY = 0;
@@ -209,26 +232,26 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   /*
 User input handling:
 */
-// Keyboard input
-window.addEventListener('keydown', (e) => {
-  // if space is pressed, make the player jump
-  if (e.code === 'Space') {
+  // Keyboard input
+  window.addEventListener('keydown', (e) => {
+    // if space is pressed, make the player jump
+    if (e.code === 'Space') {
+      if (isGameOver) {
+        resetGame();
+      } else {
+        playerJump();
+      }
+    }
+  });
+
+  // If user clicks/taps the canvas, make the player jump or restart
+  app.canvas.addEventListener('pointerdown', () => {
     if (isGameOver) {
       resetGame();
     } else {
       playerJump();
     }
-  }
-});
-
-// If user clicks/taps the canvas, make the player jump or restart
-app.canvas.addEventListener('pointerdown', () => {
-  if (isGameOver) {
-    resetGame();
-  } else {
-    playerJump();
-  }
-});
+  });
 
   /*
   Resizing game window handling:
@@ -287,6 +310,8 @@ app.canvas.addEventListener('pointerdown', () => {
 
     // When obstacle goes off-screen:
     if (obstacleSprite.x < -bgTexture.width / 2 - 100) {
+      score++;
+      scoreText.text = `Score: ${score}`; // Update text
       obstacleSprite.texture = getRandomObstacleTexture();
       const randomDistance = Math.random() * (OBSTACLE_MAX_DISTANCE - OBSTACLE_MIN_DISTANCE) + OBSTACLE_MIN_DISTANCE;
       obstacleSprite.x = bgTexture.width / 2 + randomDistance;
