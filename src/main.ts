@@ -13,7 +13,14 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   const gameContainer = new Container();
   app.stage.addChild(gameContainer);
 
-  let gameSpeed = 5.0;
+  // Game constants
+  const INITIAL_GAME_SPEED = 5;
+  const JUMP_STRENGTH = -8;
+  const GRAVITY = 0.5;
+  const OBSTACLE_MIN_DISTANCE = 200;
+  const OBSTACLE_MAX_DISTANCE = 400;
+
+  let gameSpeed = INITIAL_GAME_SPEED;
   let isGameOver = false;
 
   /*
@@ -114,7 +121,7 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   plantsSprite2.position.set(plantsTexture.width, 0);
   gameContainer.addChild(plantsSprite2);
 
-  const JUMP_STRENGTH = -8;
+  // ground y position
   const GROUND_Y = bgTexture.height / 2 - 40; // The y position where player stands
 
   /*
@@ -179,7 +186,6 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
   // Player physics
   let playerVelocityY = 0;
   let isJumping = false;
-  const GRAVITY = 0.5;
   // Jump function
   function playerJump() {
     if (!isJumping) {
@@ -188,35 +194,51 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
     }
   }
 
+  // Reset game function
+  function resetGame() {
+    isGameOver = false;
+    gameSpeed = INITIAL_GAME_SPEED;
+    playerSprite.play();
+    playerSprite.position.set(-bgTexture.width / 2 + 60, GROUND_Y);
+    playerVelocityY = 0;
+    isJumping = false;
+    obstacleSprite.x = bgTexture.width / 2 + 100;
+    obstacleSprite.texture = getRandomObstacleTexture();
+  }
+
   /*
-  User input handling:
-  */
-  // Keyboard input
-  window.addEventListener('keydown', (e) => {
-    // if space is pressed, make the player jump
-    if (e.code === 'Space') {
-      playerJump()
+User input handling:
+*/
+// Keyboard input
+window.addEventListener('keydown', (e) => {
+  // if space is pressed, make the player jump
+  if (e.code === 'Space') {
+    if (isGameOver) {
+      resetGame();
+    } else {
+      playerJump();
     }
-  });
-  // If user clicks/taps the canvas, make the player jump
-  app.canvas.addEventListener('pointerdown', playerJump);
+  }
+});
+
+// If user clicks/taps the canvas, make the player jump or restart
+app.canvas.addEventListener('pointerdown', () => {
+  if (isGameOver) {
+    resetGame();
+  } else {
+    playerJump();
+  }
+});
 
   /*
   Resizing game window handling:
   */
   // Function to resize and position the background
   function resizeGame() {
-    // Add margin (e.g., 20 pixels on each side)
-    const margin = 0;
-    const availableWidth = app.screen.width - (margin * 2);
-    const availableHeight = app.screen.height - (margin * 2);
-    // Calculate scale for both dimensions
-    const scaleX = availableWidth / bgTexture.width;
-    const scaleY = availableHeight / bgTexture.height;
-    // Use the SMALLER scale to ensure entire image fits
+    const scaleX = app.screen.width / bgTexture.width;
+    const scaleY = app.screen.height / bgTexture.height;
     const scale = Math.min(scaleX, scaleY);
     gameContainer.scale.set(scale);
-    // Center on screen
     gameContainer.position.set(app.screen.width / 2, app.screen.height / 2);
   }
   resizeGame();
@@ -266,10 +288,7 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
     // When obstacle goes off-screen:
     if (obstacleSprite.x < -bgTexture.width / 2 - 100) {
       obstacleSprite.texture = getRandomObstacleTexture();
-      // Random distance between obstacles
-      const minDistance = 200;
-      const maxDistance = 400;
-      const randomDistance = Math.random() * (maxDistance - minDistance) + minDistance;
+      const randomDistance = Math.random() * (OBSTACLE_MAX_DISTANCE - OBSTACLE_MIN_DISTANCE) + OBSTACLE_MIN_DISTANCE;
       obstacleSprite.x = bgTexture.width / 2 + randomDistance;
     }
 
