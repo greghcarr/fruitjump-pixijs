@@ -31,3 +31,8 @@ body {
     width: 100% !important;
     height: 100% !important;
 }
+
+@font-face {
+  font-family: 'cnc_red_alert';
+  src: url('assets/fonts/cnc_red_alert[INET].ttf') format('truetype');
+}
