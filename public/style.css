@@ -2,7 +2,11 @@ body {
     margin: 0;
     padding: 0;
     color: rgba(255, 255, 255, 0.87);
-    background-color: #000000;
+    background-color: #3c3c3c;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
 }
 
 #app {
@@ -12,4 +16,18 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+
+#pixi-container {
+  width: min(90vw, 160vh); /* Width limited by viewport width OR height */
+  aspect-ratio: 16 / 9;
+  max-width: 1280px;
+  border: 10px solid black;
+  background-color: #3C3C3C;
+}
+
+#pixi-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
 }

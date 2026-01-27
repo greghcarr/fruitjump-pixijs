@@ -1,16 +1,20 @@
 // description: This example demonstrates how to use a Container to group and manipulate multiple sprites
-import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from 'pixi.js';
+import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Rectangle } from 'pixi.js';
 
 (async () => {
   // Create a new application
   const app = new Application();
-  await app.init({ background: '#3C3C3C', resizeTo: window });
+  await app.init({
+    background: '#3C3C3C',
+    resizeTo: document.getElementById('pixi-container')! // Resize to fit this div
+  });
   document.getElementById('pixi-container')!.appendChild(app.canvas);
 
   const gameContainer = new Container();
   app.stage.addChild(gameContainer);
 
   let gameSpeed = 5.0;
+  let isGameOver = false;
 
   /*
   Create background texture layers:
@@ -42,6 +46,36 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   function getRandomObstacleTexture() {
     const textures = Object.values(obstacleTextures);
     return textures[Math.floor(Math.random() * textures.length)];
+  }
+
+  // Function to check if two sprites are colliding using their hitAreas
+  function checkCollision(sprite1: Sprite | AnimatedSprite, sprite2: Sprite) {
+    const pos1 = sprite1.getGlobalPosition();
+    const pos2 = sprite2.getGlobalPosition();
+
+    // Get the container scale
+    const containerScale = gameContainer.scale.x;
+
+    // Player hitbox: -10, -25, 20, 25 (scaled by container and sprite scale)
+    const player = {
+      x: pos1.x + (-10 * Math.abs(sprite1.scale.x) * containerScale),
+      y: pos1.y + (-25 * Math.abs(sprite1.scale.y) * containerScale),
+      width: 20 * Math.abs(sprite1.scale.x) * containerScale,
+      height: 25 * Math.abs(sprite1.scale.y) * containerScale
+    };
+
+    // Obstacle hitbox: -12, -20, 24, 20 (scaled by container and sprite scale)
+    const obstacle = {
+      x: pos2.x + (-12 * Math.abs(sprite2.scale.x) * containerScale),
+      y: pos2.y + (-20 * Math.abs(sprite2.scale.y) * containerScale),
+      width: 24 * Math.abs(sprite2.scale.x) * containerScale,
+      height: 20 * Math.abs(sprite2.scale.y) * containerScale
+    };
+
+    return player.x < obstacle.x + obstacle.width &&
+      player.x + player.width > obstacle.x &&
+      player.y < obstacle.y + obstacle.height &&
+      player.y + player.height > obstacle.y;
   }
 
   /*
@@ -87,28 +121,42 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   Create player sprite:
   */
   const playerSprite = new AnimatedSprite(Object.values(playerWalkFrames));
-  playerSprite.animationSpeed = (10 / 60) * (gameSpeed / 4);
+  playerSprite.animationSpeed = 10 / 60;
   playerSprite.play();
-  playerSprite.anchor.set(0.5, 1); // 0.5 = center horizontally, 1 = bottom
+  playerSprite.anchor.set(0.5, 1);
   playerSprite.scale.x = -1;
   playerSprite.scale.y = 1;
   playerSprite.position.set(
     -bgTexture.width / 2 + 60,
     GROUND_Y
   );
+  // Add hitbox for player (smaller than visual sprite)
+  playerSprite.hitArea = new Rectangle(-10, -25, 20, 25); // Adjust these values
   gameContainer.addChild(playerSprite);
+  // DEBUG: show player hitbox in red
+  // const playerHitboxGraphic = new Graphics();
+  // playerHitboxGraphic.rect(-10, -25, 20, 25);
+  // playerHitboxGraphic.stroke({ width: 2, color: 0xff0000 });
+  // playerSprite.addChild(playerHitboxGraphic);
 
   /* 
   Create obstacle sprite with random texture:
   */
   const obstacleSprite = new Sprite(getRandomObstacleTexture());
-  obstacleSprite.anchor.set(0.5, 1); // 0.5 = center horizontally, 1 = bottom
+  obstacleSprite.anchor.set(0.5, 1);
   obstacleSprite.scale.set(1);
   obstacleSprite.position.set(
     bgTexture.width / 2 + 100,
     GROUND_Y
   );
+  // Add hitbox for obstacle (smaller than visual sprite)
+  obstacleSprite.hitArea = new Rectangle(-12, -20, 24, 20); // Adjust these values
   gameContainer.addChild(obstacleSprite);
+  // DEBUG: show obstacle hitbox in red
+  // const obstacleHitboxGraphic = new Graphics();
+  // obstacleHitboxGraphic.rect(-12, -20, 24, 20);
+  // obstacleHitboxGraphic.stroke({ width: 2, color: 0xff0000 });
+  // obstacleSprite.addChild(obstacleHitboxGraphic);
 
   /*
   Create the mask to limit visible area:
@@ -159,7 +207,7 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
   // Function to resize and position the background
   function resizeGame() {
     // Add margin (e.g., 20 pixels on each side)
-    const margin = 20;
+    const margin = 0;
     const availableWidth = app.screen.width - (margin * 2);
     const availableHeight = app.screen.height - (margin * 2);
     // Calculate scale for both dimensions
@@ -172,12 +220,20 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     gameContainer.position.set(app.screen.width / 2, app.screen.height / 2);
   }
   resizeGame();
-  window.addEventListener('resize', resizeGame);
+
+  // Watch for container size changes
+  const resizeObserver = new ResizeObserver(() => {
+    resizeGame();
+  });
+  resizeObserver.observe(document.getElementById('pixi-container')!);
 
   /*
   Game loop:
   */
   app.ticker.add((time) => {
+    // Skip game loop if game is over
+    if (isGameOver) return;
+
     /*
     Player jump physics and handling:
     */
@@ -199,10 +255,22 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics } from
     */
     // Move obstacle (same speed as background)
     obstacleSprite.x -= gameSpeed * time.deltaTime;
-    // In the game loop, when obstacle goes off-screen:
+
+    // Check for collision between player and obstacle
+    if (!isGameOver && checkCollision(playerSprite, obstacleSprite)) {
+      isGameOver = true;
+      playerSprite.stop(); // Add this line
+      console.log('Game Over!'); // For now, just log it
+    }
+
+    // When obstacle goes off-screen:
     if (obstacleSprite.x < -bgTexture.width / 2 - 100) {
-      obstacleSprite.texture = getRandomObstacleTexture(); // New random texture!
-      obstacleSprite.x = bgTexture.width / 2 + 100;
+      obstacleSprite.texture = getRandomObstacleTexture();
+      // Random distance between obstacles
+      const minDistance = 200;
+      const maxDistance = 400;
+      const randomDistance = Math.random() * (maxDistance - minDistance) + minDistance;
+      obstacleSprite.x = bgTexture.width / 2 + randomDistance;
     }
 
     /*
