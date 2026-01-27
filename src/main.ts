@@ -189,17 +189,36 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
     style: {
       fontFamily: 'Arial',
       fontSize: 20,
-      fill: 0xffffff,        // White text
+      fill: 0xffffff,
       fontWeight: 'bold',
-      stroke: { color: 0x000000, width: 4 }  // Black outline, 4px thick
+      stroke: { color: 0x000000, width: 4 }
     }
   });
-  scoreText.anchor.set(1, 0); // Anchor top-right
+  scoreText.anchor.set(1, 0);
   scoreText.position.set(
-    bgTexture.width / 2 - 40,  // 20px from right edge
-    -bgTexture.height / 2 + 10  // 20px from top edge
+    bgTexture.width / 2 - 40,
+    -bgTexture.height / 2 + 10
   );
   gameContainer.addChild(scoreText);
+
+  /*
+  Create game over text:
+  */
+  const gameOverText = new Text({
+    text: 'Game Over!\nClick to play again',
+    style: {
+      fontFamily: 'Arial',
+      fontSize: 24,
+      fill: 0xffffff,
+      fontWeight: 'bold',
+      stroke: { color: 0x000000, width: 5 },
+      align: 'center'
+    }
+  });
+  gameOverText.anchor.set(0.5); // Center it
+  gameOverText.position.set(0, 0); // Center of game
+  gameOverText.visible = false; // Hidden at start
+  gameContainer.addChild(gameOverText);
 
   /*
   Player jump code:
@@ -220,7 +239,8 @@ import { Application, Assets, Container, Sprite, AnimatedSprite, Graphics, Recta
     isGameOver = false;
     gameSpeed = INITIAL_GAME_SPEED;
     score = 0;
-    scoreText.text = 'Score: 0'; // Reset text display
+    scoreText.text = 'Score: 0';
+    gameOverText.visible = false; // Hide game over text
     playerSprite.play();
     playerSprite.position.set(-bgTexture.width / 2 + 60, GROUND_Y);
     playerVelocityY = 0;
@@ -304,8 +324,8 @@ User input handling:
     // Check for collision between player and obstacle
     if (!isGameOver && checkCollision(playerSprite, obstacleSprite)) {
       isGameOver = true;
-      playerSprite.stop(); // Add this line
-      console.log('Game Over!'); // For now, just log it
+      playerSprite.stop();
+      gameOverText.visible = true; // Show game over text
     }
 
     // When obstacle goes off-screen:
