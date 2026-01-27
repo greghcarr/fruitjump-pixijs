@@ -39,6 +39,13 @@ import { sound } from '@pixi/sound';
     '/assets/sound/FurnitureLevel.mp3',
     '/assets/sound/CarLevel.mp3',
   ];
+  // Sound effect locations
+  const JUMP_SOUND_PATH = '/assets/sound/jump_digital.wav';
+  sound.add('jump', JUMP_SOUND_PATH);
+  const SCORE_SOUND_PATH = '/assets/sound/score_digital_D.wav';
+  sound.add('score', SCORE_SOUND_PATH);
+  const SCORE_SPEED_INCREASE_SOUND_PATH = '/assets/sound/score_digital_F.wav';
+  sound.add('score_increase', SCORE_SPEED_INCREASE_SOUND_PATH);
 
   let gameSpeed = INITIAL_GAME_SPEED;
   let score = 0;
@@ -301,6 +308,7 @@ function playNextTrack() {
     if (!isJumping) {
       isJumping = true;
       playerVelocityY = JUMP_STRENGTH;
+      sound.play('jump', { volume: 0.3 }); // Play jump sound
     }
   }
 
@@ -413,6 +421,12 @@ User input handling:
     if (obstacleSprite.x < -GAME_WIDTH / 2 - 100) {
       score++;
       scoreText.text = `Score: ${score}`; // Update text
+      if (score < nextSpeedIncreaseScore) {
+        sound.play('score', { volume: 0.4 }); // Play score sound
+      }
+      else {
+        sound.play('score_speed_increase', { volume: 0.4 }); // Play score + speed increase sound
+      }
 
       // Check if we should increase speed
       if (score >= nextSpeedIncreaseScore && gameSpeed < MAX_GAME_SPEED) {
