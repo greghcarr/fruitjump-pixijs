@@ -45,7 +45,7 @@ import { sound } from '@pixi/sound';
   const SCORE_SOUND_PATH = '/assets/sound/score_digital_D.wav';
   sound.add('score', SCORE_SOUND_PATH);
   const SCORE_SPEED_INCREASE_SOUND_PATH = '/assets/sound/score_digital_F.wav';
-  sound.add('score_increase', SCORE_SPEED_INCREASE_SOUND_PATH);
+  sound.add('score_speed_increase', SCORE_SPEED_INCREASE_SOUND_PATH);
 
   let gameSpeed = INITIAL_GAME_SPEED;
   let score = 0;
