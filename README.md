@@ -46,31 +46,6 @@ You will need [Node.js](https://nodejs.org/) installed.
 
 Press **Space** or **click/tap** to jump. When you hit an obstacle, press **Space** or **click/tap** again to restart.
 
-## How It Works
-
-### Parallax Scrolling
-
-The game features three background layers that scroll at different speeds relative to the game speed. The clouds move slowest (at 1/5 game speed), the main background moves at full game speed, and foreground elements (trees/plants) also move at full speed.
-
-### Player Physics
-
-The player character uses simple physics for jumping: when you jump, an upward velocity is applied, and gravity pulls the character back down each frame. The character can only jump again once they've landed on the ground.
-
-### Obstacle System
-
-Obstacles spawn off-screen to the right at randomized distances (between 200-600 pixels apart) and scroll left at the current game speed. When an obstacle moves off-screen to the left, it's recycled back to the right with a new random sprite and position.
-
-### Collision Detection
-
-Collision detection uses custom hitboxes that are slightly smaller than the visual sprites.
-
-### Progressive Difficulty
-
-Every 25 points, the game speed increases by 0.5 units until reaching a maximum of 16 units.
-
-### Music System
-
-Music plays from a sequential playlist. When one track ends, the next begins automatically. When you restart the game, the music resets to the first track — meaning you need to survive longer to hear the later songs in the playlist.
+Art and Music by Sarah Clements
 
 Programming and Sound Effects by Greg Carr
-Art and Music by Sarah Clements
