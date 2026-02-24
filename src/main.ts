@@ -29,22 +29,29 @@ import { sound } from '@pixi/sound';
   const OBSTACLE_MIN_DISTANCE = 200;
   const OBSTACLE_MAX_DISTANCE = 600;
 
+  const AUDIO_PATH_PREFIX = '/fruitjump-pixijs';
+  const IMAGE_PATH_PREFIX = 'fruitjump-pixijs';
+
+  await Assets.init({
+    basePath: IMAGE_PATH_PREFIX,
+  });
+
   // Music playlist
   const MUSIC_PLAYLIST = [
-    '/assets/sound/FruitJumpStreetSong.mp3',
-    '/assets/sound/AmoebaLevel.mp3',
-    '/assets/sound/BugLevel.mp3',
-    '/assets/sound/FruitLevel.mp3',
-    '/assets/sound/ApplianceLevel.mp3',
-    '/assets/sound/FurnitureLevel.mp3',
-    '/assets/sound/CarLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/FruitJumpStreetSong.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/AmoebaLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/BugLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/FruitLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/ApplianceLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/FurnitureLevel.mp3',
+    AUDIO_PATH_PREFIX + '/assets/sound/CarLevel.mp3',
   ];
   // Sound effect locations
-  const JUMP_SOUND_PATH = '/assets/sound/jump_digital.wav';
+  const JUMP_SOUND_PATH = AUDIO_PATH_PREFIX + '/assets/sound/jump_digital.wav';
   sound.add('jump', JUMP_SOUND_PATH);
-  const SCORE_SOUND_PATH = '/assets/sound/score_digital_D.wav';
+  const SCORE_SOUND_PATH = AUDIO_PATH_PREFIX + '/assets/sound/score_digital_D.wav';
   sound.add('score', SCORE_SOUND_PATH);
-  const SCORE_SPEED_INCREASE_SOUND_PATH = '/assets/sound/score_digital_F.wav';
+  const SCORE_SPEED_INCREASE_SOUND_PATH = AUDIO_PATH_PREFIX + '/assets/sound/score_digital_F.wav';
   sound.add('score_speed_increase', SCORE_SPEED_INCREASE_SOUND_PATH);
 
   let gameSpeed = INITIAL_GAME_SPEED;
